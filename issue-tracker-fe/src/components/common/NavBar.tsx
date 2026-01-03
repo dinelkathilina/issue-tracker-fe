@@ -50,7 +50,7 @@ export default function NavBar() {
             <Switch
               isSelected={theme === "light"}
               onValueChange={(e) => setTheme(e ? "light" : "dark")}
-              color="secondary"
+              color="primary"
               size="lg"
               thumbIcon={({ isSelected, className }) =>
                 isSelected ? (
