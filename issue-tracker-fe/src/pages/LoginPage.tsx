@@ -10,10 +10,13 @@ import {
   Link,
   Button,
 } from "@heroui/react";
+
+import { useTheme } from "@heroui/use-theme";
 import { Logo } from "../components/common/Logo";
 
 export default function LoginPage() {
   const menuItems = ["Profile", "Dashboard", "Log Out"];
+  const { theme, setTheme } = useTheme();
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   return (
@@ -36,6 +39,11 @@ export default function LoginPage() {
             <Logo />
 
             <p className="font-bold text-inherit">ACME</p>
+            <div>
+              The current theme is: {theme}
+              <button onClick={() => setTheme("light")}>Light Mode</button>
+              <button onClick={() => setTheme("dark")}>Dark Mode</button>
+            </div>
           </NavbarBrand>
         </NavbarContent>
 
@@ -44,6 +52,7 @@ export default function LoginPage() {
             <Button as={Link} color="warning" href="#" variant="flat">
               Sign Up
             </Button>
+            
           </NavbarItem>
         </NavbarContent>
 
