@@ -22,6 +22,7 @@ export default function LoginPage() {
         isBordered
         isMenuOpen={isMenuOpen}
         onMenuOpenChange={setIsMenuOpen}
+        maxWidth="full"
       >
         <NavbarContent className="sm:hidden" justify="start">
           <NavbarMenuToggle
@@ -29,7 +30,7 @@ export default function LoginPage() {
           />
         </NavbarContent>
 
-        <NavbarContent className="sm:hidden pr-3" justify="center">
+        <NavbarContent justify="start">
           <NavbarBrand>
             {/* logo */}
             <Logo />
@@ -38,17 +39,7 @@ export default function LoginPage() {
           </NavbarBrand>
         </NavbarContent>
 
-        <NavbarContent className="hidden sm:flex gap-4" justify="center">
-          <NavbarBrand>
-            <Logo />
-            <p className="font-bold text-inherit">ACME</p>
-          </NavbarBrand>
-        </NavbarContent>
-
         <NavbarContent justify="end">
-          <NavbarItem className="hidden lg:flex">
-            <Link href="#">Login</Link>
-          </NavbarItem>
           <NavbarItem>
             <Button as={Link} color="warning" href="#" variant="flat">
               Sign Up
