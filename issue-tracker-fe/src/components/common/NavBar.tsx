@@ -52,7 +52,9 @@ export default function NavBar() {
         <NavbarContent justify="start">
           <NavbarBrand>
             <Logo />
-            <p className="font-bold text-inherit ml-2">Issue Tracker</p>
+            <p className="font-bold text-inherit ml-2 hidden min-[375px]:block">
+              Issue Tracker
+            </p>
           </NavbarBrand>
         </NavbarContent>
 
