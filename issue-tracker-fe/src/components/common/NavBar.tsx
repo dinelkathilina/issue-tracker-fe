@@ -10,18 +10,31 @@ import {
   Link,
   Button,
   Switch,
+  User,
 } from "@heroui/react";
 
 import { useTheme } from "@heroui/use-theme";
 import { Logo } from "./Logo";
 import { MoonIcon } from "./MoonIcon";
 import { SunIcon } from "./SunIcon";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { logout } from "../../store/slices/authSlice";
 
 export default function NavBar() {
-  const menuItems = ["Profile", "Dashboard", "Log Out"];
   const { theme, setTheme } = useTheme();
+  const dispatch = useAppDispatch();
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+  const menuItems = isAuthenticated
+    ? ["Profile", "Dashboard", "Log Out"]
+    : ["Login", "Sign Up"];
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
   return (
     <>
       <Navbar
@@ -38,10 +51,8 @@ export default function NavBar() {
 
         <NavbarContent justify="start">
           <NavbarBrand>
-            {/* logo */}
             <Logo />
-
-            <p className="font-bold text-inherit">Issue Tracker</p>
+            <p className="font-bold text-inherit ml-2">Issue Tracker</p>
           </NavbarBrand>
         </NavbarContent>
 
@@ -62,11 +73,35 @@ export default function NavBar() {
             />
           </NavbarItem>
 
-          <NavbarItem>
-            <Button as={Link} color="warning" href="#" variant="flat">
-              Sign Up
-            </Button>
-          </NavbarItem>
+          {isAuthenticated ? (
+            <>
+              <NavbarItem className="hidden lg:flex">
+                <User
+                  name={user?.name}
+                  description={user?.email}
+                  avatarProps={{
+                    src: `https://i.pravatar.cc/150?u=${user?.id}`,
+                  }}
+                />
+              </NavbarItem>
+              <NavbarItem>
+                <Button color="danger" variant="flat" onPress={handleLogout}>
+                  Log Out
+                </Button>
+              </NavbarItem>
+            </>
+          ) : (
+            <>
+              <NavbarItem className="hidden lg:flex">
+                <Link href="#">Login</Link>
+              </NavbarItem>
+              <NavbarItem>
+                <Button as={Link} color="warning" href="#" variant="flat">
+                  Sign Up
+                </Button>
+              </NavbarItem>
+            </>
+          )}
         </NavbarContent>
 
         <NavbarMenu>
@@ -75,14 +110,15 @@ export default function NavBar() {
               <Link
                 className="w-full"
                 color={
-                  index === 2
-                    ? "warning"
-                    : index === menuItems.length - 1
+                  item === "Log Out"
                     ? "danger"
+                    : item === "Sign Up"
+                    ? "warning"
                     : "foreground"
                 }
                 href="#"
                 size="lg"
+                onPress={item === "Log Out" ? handleLogout : undefined}
               >
                 {item}
               </Link>
