@@ -10,18 +10,18 @@ import {
 } from "@heroui/react";
 import { Link } from "react-router-dom";
 
-const LoginForm = () => {
+const SignupForm = () => {
   return (
-    <Card className="w-[400px] h-[400px] ">
+    <Card className="w-[400px] h-[450px] ">
       <CardHeader className="flex justify-center gap-3 ">
         {/* I need to center this div */}
         <div className="flex flex-col  ">
-          <p className="text-lg text-white font-bold ">Welcome Back</p>
+          <p className="text-lg text-white font-bold ">Create an Account</p>
         </div>
       </CardHeader>
       <Divider />
       <CardBody>
-        <p className="my-2">Enter Your Credentials to Login</p>
+        <p className="my-2">Enter Your Credentials to SignUp</p>
 
         <Form className="w-full flex flex-col gap-4">
           <Input
@@ -38,15 +38,22 @@ const LoginForm = () => {
             type="password"
             variant="bordered"
           />
+          <Input
+            isRequired
+            label="ConfirmPassword"
+            placeholder="Confirm your password"
+            type="password"
+            variant="bordered"
+          />
           <div className="flex justify-center w-full">
             <Button as={Link} color="primary" to="/dashboard" className="mt-2">
-              Sign In
+              Sign Up
             </Button>
           </div>
           <div className="flex flex-col items-center w-full">
-            <p >Don't have an account?</p>
-            <LinkButton href="/signup" underline="always">
-              Sign Up
+            <p >Already have an account?</p>
+            <LinkButton href="/" underline="always">
+              Sign In
             </LinkButton>
           </div>
         </Form>
@@ -56,4 +63,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default SignupForm;
