@@ -16,7 +16,7 @@ const LoginForm = () => {
       <CardHeader className="flex justify-center gap-3 ">
         {/* I need to center this div */}
         <div className="flex flex-col  ">
-          <p className="text-lg text-white font-bold ">Welcome Back</p>
+          <p className="text-lg dark:text-white font-bold ">Welcome Back</p>
         </div>
       </CardHeader>
       <Divider />
