@@ -38,7 +38,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-8 flex flex-col gap-8">
+    <div className="p-2 flex flex-col gap-4">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">

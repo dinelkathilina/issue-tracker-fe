@@ -55,7 +55,7 @@ export const priorityColorMap: Record<
   | "danger"
   | undefined
 > = {
-  Low: "default",
+  Low: "secondary",
   Medium: "success",
   High: "warning",
   Critical: "danger",
@@ -106,19 +106,6 @@ export const IssueCard: React.FC<IssueCardProps> = ({
             }}
           >
             <DropdownItem
-              key="edit"
-              startContent={<EditIcon className="text-xl" />}
-            >
-              Edit Issue
-            </DropdownItem>
-            <DropdownItem
-              key="In Progress"
-              color="warning"
-              description="Move to in progress"
-            >
-              Mark as In Progress
-            </DropdownItem>
-            <DropdownItem
               key="Resolved"
               color="success"
               description="Issue is fixed"
@@ -127,17 +114,10 @@ export const IssueCard: React.FC<IssueCardProps> = ({
             </DropdownItem>
             <DropdownItem
               key="Closed"
-              color="default"
+              color="danger"
               description="Close the issue"
             >
               Mark as Closed
-            </DropdownItem>
-            <DropdownItem
-              key="Open"
-              color="primary"
-              description="Reopen the issue"
-            >
-              Mark as Open
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
