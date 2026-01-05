@@ -3,6 +3,7 @@ import MainLayout from "./layouts/MainLayout";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import IssuePage from "./pages/IssueCreatingPage";
+import DashboardPage from "./pages/Dashboard";
 
 // Define the router configuration
 const router = createBrowserRouter([
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
       {
         path: "issues", // This renders at "/dashboard/issues"
         element: <IssuePage />,
+      },
+      {
+        path: "dashboard", // This renders at "/dashboard"
+        element: <DashboardPage />,
       },
     ],
   },
