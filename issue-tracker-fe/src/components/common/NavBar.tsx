@@ -42,6 +42,7 @@ export default function NavBar() {
         isMenuOpen={isMenuOpen}
         onMenuOpenChange={setIsMenuOpen}
         maxWidth="full"
+        position="sticky"
       >
         <NavbarContent className="sm:hidden" justify="start">
           <NavbarMenuToggle
@@ -95,7 +96,7 @@ export default function NavBar() {
           ) : (
             <>
               <NavbarItem>
-                <Button as={Link} color="primary" href="#" >
+                <Button as={Link} color="primary" href="#">
                   Sign Up
                 </Button>
               </NavbarItem>
