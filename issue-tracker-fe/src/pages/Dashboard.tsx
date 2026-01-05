@@ -55,6 +55,20 @@ const Dashboard = () => {
     editModal.onOpen();
   };
 
+  const statusSummary = useMemo(() => {
+    const counts = {
+      Open: 0,
+      "In Progress": 0,
+      Resolved: 0,
+    };
+    issues.forEach((issue) => {
+      if (issue.status in counts) {
+        counts[issue.status as keyof typeof counts]++;
+      }
+    });
+    return counts;
+  }, [issues]);
+
   return (
     <div className="p-2 flex flex-col gap-4">
       <div className="flex justify-between items-center">
@@ -69,6 +83,37 @@ const Dashboard = () => {
         <Button color="primary" onPress={addModal.onOpen}>
           Add New Issue
         </Button>
+      </div>
+
+      {/* Status Summary Section */}
+      <div className="flex flex-wrap gap-4 px-1 py-2">
+        <div className="flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/20 rounded-xl border border-primary-100 dark:border-primary-500/20 shadow-sm transition-all hover:shadow-md">
+          <div className="w-2 h-2 rounded-full bg-primary" />
+          <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+            Open:
+          </span>
+          <span className="text-lg font-bold text-primary">
+            {statusSummary.Open}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-warning-50 dark:bg-warning-900/20 rounded-xl border border-warning-100 dark:border-warning-500/20 shadow-sm transition-all hover:shadow-md">
+          <div className="w-2 h-2 rounded-full bg-warning" />
+          <span className="text-sm font-semibold text-warning-600 dark:text-warning-400">
+            In Progress:
+          </span>
+          <span className="text-lg font-bold text-warning">
+            {statusSummary["In Progress"]}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-success-50 dark:bg-success-900/20 rounded-xl border border-success-100 dark:border-success-500/20 shadow-sm transition-all hover:shadow-md">
+          <div className="w-2 h-2 rounded-full bg-success" />
+          <span className="text-sm font-semibold text-success-600 dark:text-success-400">
+            Resolved:
+          </span>
+          <span className="text-lg font-bold text-success">
+            {statusSummary.Resolved}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-2">
