@@ -22,7 +22,7 @@ const Dashboard = () => {
   return (
     <>
       <Button color="primary" onPress={onOpen}>
-        Open Modal
+        Add Issue
       </Button>
       <Modal isOpen={isOpen} placement="top-center" size="xl" onOpenChange={onOpenChange}>
         <ModalContent>
