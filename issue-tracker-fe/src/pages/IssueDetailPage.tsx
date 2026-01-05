@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -10,19 +10,66 @@ import {
   Chip,
   Breadcrumbs,
   BreadcrumbItem,
+  Spinner,
+  useDisclosure,
 } from "@heroui/react";
 import {
   statusColorMap,
   priorityColorMap,
 } from "../components/issues/IssueCard";
-import { mockIssues } from "../data/mockIssues";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  fetchIssueById,
+  clearSelectedIssue,
+} from "../store/slices/issuesSlice";
+import EditModal from "../components/Modal/EditModal";
 
-const IssueDetailPage: React.FC = () => {
+const IssueDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const editModal = useDisclosure();
 
-  const issue = mockIssues.find((i) => i.id === id);
+  const {
+    selectedIssue: issue,
+    loadingDetail,
+    error,
+  } = useAppSelector((state) => state.issues);
 
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchIssueById(id));
+    }
+
+    // Cleanup on unmount
+    return () => {
+      dispatch(clearSelectedIssue());
+    };
+  }, [dispatch, id]);
+
+  // Loading state
+  if (loadingDetail) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Spinner size="lg" label="Loading issue details..." />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <h1 className="text-4xl font-bold text-danger">Error</h1>
+        <p className="text-default-400">{error}</p>
+        <Button color="primary" onPress={() => navigate("/dashboard")}>
+          Back to Dashboard
+        </Button>
+      </div>
+    );
+  }
+
+  // Not found state
   if (!issue) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -37,14 +84,24 @@ const IssueDetailPage: React.FC = () => {
     );
   }
 
+  // Card issue format for EditModal
+  const cardIssue = {
+    id: issue._id,
+    title: issue.title,
+    description: issue.description,
+    status: issue.status,
+    priority: issue.priority,
+    severity: issue.severity,
+  };
+
   return (
-    <div className="p-8 flex flex-col gap-6 max-w-4xl mx-auto">
+    <div className="p-8 flex flex-col gap-6 max-w-4xl mx-auto w-full">
       <Breadcrumbs>
         <BreadcrumbItem onPress={() => navigate("/dashboard")}>
           Dashboard
         </BreadcrumbItem>
         <BreadcrumbItem>Issue Details</BreadcrumbItem>
-        <BreadcrumbItem>{issue.id}</BreadcrumbItem>
+        <BreadcrumbItem>#{issue._id.slice(-6)}</BreadcrumbItem>
       </Breadcrumbs>
 
       <Card className="border-none bg-background/60 dark:bg-default-100/50 backdrop-blur-lg backdrop-saturate-150 shadow-xl">
@@ -70,18 +127,36 @@ const IssueDetailPage: React.FC = () => {
               </Chip>
             </div>
           </div>
-          <div className="flex gap-6 text-default-500">
+          <div className="flex gap-6 text-default-500 flex-wrap">
             <div className="flex flex-col">
               <span className="text-tiny uppercase font-bold text-default-400">
                 ID
               </span>
-              <span className="text-small font-medium">#{issue.id}</span>
+              <span className="text-small font-medium">
+                #{issue._id.slice(-6)}
+              </span>
             </div>
             <div className="flex flex-col">
               <span className="text-tiny uppercase font-bold text-default-400">
                 Severity
               </span>
               <span className="text-small font-medium">{issue.severity}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-tiny uppercase font-bold text-default-400">
+                Created
+              </span>
+              <span className="text-small font-medium">
+                {new Date(issue.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-tiny uppercase font-bold text-default-400">
+                Updated
+              </span>
+              <span className="text-small font-medium">
+                {new Date(issue.updatedAt).toLocaleDateString()}
+              </span>
             </div>
           </div>
         </CardHeader>
@@ -103,11 +178,22 @@ const IssueDetailPage: React.FC = () => {
           >
             Back to Dashboard
           </Button>
-          <Button color="primary" variant="solid">
+          <Button color="primary" variant="solid" onPress={editModal.onOpen}>
             Edit Issue
           </Button>
         </CardFooter>
       </Card>
+
+      <EditModal
+        isOpen={editModal.isOpen}
+        onOpenChange={editModal.onOpenChange}
+        issue={cardIssue}
+        onSuccess={() => {
+          if (id) {
+            dispatch(fetchIssueById(id));
+          }
+        }}
+      />
     </div>
   );
 };

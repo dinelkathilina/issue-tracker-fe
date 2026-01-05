@@ -11,6 +11,7 @@ export const SubmitIcon = (props: SVGProps<SVGSVGElement>) => {
         width="800px"
         height="800px"
         viewBox="0 0 93.934 93.934"
+        {...props}
       >
         <g id="SVGRepo_bgCarrier" stroke-width="0" />
 

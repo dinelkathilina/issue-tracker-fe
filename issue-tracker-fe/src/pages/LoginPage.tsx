@@ -1,5 +1,4 @@
 import LoginForm from "../components/auth/LoginForm";
-import NavBar from "../components/common/NavBar";
 // import { useAppDispatch, useAppSelector } from "../store/hooks";
 // import { loginSuccess, logout } from "../store/slices/authSlice";
 // import { Button, Card, CardBody, CardHeader, Divider } from "@heroui/react";

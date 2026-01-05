@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useEffect, useCallback } from "react";
 import { useDebounce } from "../hooks/useDebounce";
 import {
   Button,
@@ -6,71 +6,111 @@ import {
   SelectItem,
   useDisclosure,
   Input,
+  Spinner,
 } from "@heroui/react";
-import { IssueCard, type Issue } from "../components/issues/IssueCard";
-import { mockIssues } from "../data/mockIssues";
-
+import { IssueCard } from "../components/issues/IssueCard";
 import AddNewModal from "../components/Modal/AddNewModal";
 import EditModal from "../components/Modal/EditModal";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  fetchIssues,
+  fetchIssueCounts,
+  updateIssue,
+  setFilters,
+  clearFilters,
+} from "../store/slices/issuesSlice";
+import type { Issue as ApiIssue } from "../types";
+
+// Adapter type for IssueCard compatibility
+interface CardIssue {
+  id: string;
+  title: string;
+  description: string;
+  status: "Open" | "In Progress" | "Resolved" | "Closed";
+  priority: "Low" | "Medium" | "High" | "Critical";
+  severity: "Minor" | "Major" | "Critical";
+}
+
+// Convert API issue to card format
+const toCardIssue = (issue: ApiIssue): CardIssue => ({
+  id: issue._id,
+  title: issue.title,
+  description: issue.description,
+  status: issue.status,
+  priority: issue.priority,
+  severity: issue.severity,
+});
 
 const Dashboard = () => {
+  const dispatch = useAppDispatch();
   const addModal = useDisclosure();
   const editModal = useDisclosure();
-  const [selectedIssue, setSelectedIssue] = useState<Issue | undefined>();
 
-  const [issues, setIssues] = useState<Issue[]>(mockIssues);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const { issues, counts, loading, loadingCounts, filters, error } =
+    useAppSelector((state) => state.issues);
+  const [selectedIssue, setSelectedIssue] = useState<CardIssue | undefined>();
+  const [searchTerm, setSearchTerm] = useState(filters.search || "");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const filteredIssues = useMemo(() => {
-    return issues.filter((issue) => {
-      const matchesSearch =
-        issue.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        issue.description
-          .toLowerCase()
-          .includes(debouncedSearchTerm.toLowerCase());
-
-      const matchesStatus =
-        statusFilter === "all" || issue.status === statusFilter;
-      const matchesPriority =
-        priorityFilter === "all" || issue.priority === priorityFilter;
-
-      return matchesSearch && matchesStatus && matchesPriority;
-    });
-  }, [issues, debouncedSearchTerm, statusFilter, priorityFilter]);
-
-  const handleStatusChange = (id: string, newStatus: Issue["status"]) => {
-    setIssues(
-      issues.map((issue) =>
-        issue.id === id ? { ...issue, status: newStatus } : issue
-      )
-    );
-  };
-
-  const handleEdit = (issue: Issue) => {
-    setSelectedIssue(issue);
-    editModal.onOpen();
-  };
-
-  const statusSummary = useMemo(() => {
-    const counts = {
-      Open: 0,
-      "In Progress": 0,
-      Resolved: 0,
+  // Fetch issues on mount and when filters change
+  useEffect(() => {
+    const fetchFilters = {
+      ...filters,
+      search: debouncedSearchTerm || undefined,
     };
-    issues.forEach((issue) => {
-      if (issue.status in counts) {
-        counts[issue.status as keyof typeof counts]++;
-      }
-    });
-    return counts;
-  }, [issues]);
+    dispatch(fetchIssues(fetchFilters));
+  }, [dispatch, filters, debouncedSearchTerm]);
+
+  // Fetch counts on mount
+  useEffect(() => {
+    dispatch(fetchIssueCounts());
+  }, [dispatch]);
+
+  // Refetch counts when issues change
+  useEffect(() => {
+    if (issues.length > 0) {
+      dispatch(fetchIssueCounts());
+    }
+  }, [dispatch, issues]);
+
+  const handleStatusChange = useCallback(
+    async (id: string, newStatus: CardIssue["status"]) => {
+      await dispatch(updateIssue({ id, data: { status: newStatus } }));
+      dispatch(fetchIssueCounts());
+    },
+    [dispatch]
+  );
+
+  const handleEdit = useCallback(
+    (issue: CardIssue) => {
+      setSelectedIssue(issue);
+      editModal.onOpen();
+    },
+    [editModal]
+  );
+
+  const handleFilterChange = useCallback(
+    (key: "status" | "priority", value: string) => {
+      dispatch(setFilters({ [key]: value }));
+    },
+    [dispatch]
+  );
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    dispatch(clearFilters());
+  }, [dispatch]);
+
+  // Status summary from API counts
+  const statusSummary = {
+    Open: counts?.Open || 0,
+    "In Progress": counts?.["In Progress"] || 0,
+    Resolved: counts?.Resolved || 0,
+  };
 
   return (
-    <div className="p-2 flex flex-col gap-4">
+    <div className="p-2 flex flex-col gap-4 w-full">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
@@ -92,27 +132,39 @@ const Dashboard = () => {
           <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
             Open:
           </span>
-          <span className="text-lg font-bold text-primary">
-            {statusSummary.Open}
-          </span>
+          {loadingCounts ? (
+            <Spinner size="sm" />
+          ) : (
+            <span className="text-lg font-bold text-primary">
+              {statusSummary.Open}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-warning-50 dark:bg-warning-900/20 rounded-xl border border-warning-100 dark:border-warning-500/20 shadow-sm transition-all hover:shadow-md">
           <div className="w-2 h-2 rounded-full bg-warning" />
           <span className="text-sm font-semibold text-warning-600 dark:text-warning-400">
             In Progress:
           </span>
-          <span className="text-lg font-bold text-warning">
-            {statusSummary["In Progress"]}
-          </span>
+          {loadingCounts ? (
+            <Spinner size="sm" />
+          ) : (
+            <span className="text-lg font-bold text-warning">
+              {statusSummary["In Progress"]}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-success-50 dark:bg-success-900/20 rounded-xl border border-success-100 dark:border-success-500/20 shadow-sm transition-all hover:shadow-md">
           <div className="w-2 h-2 rounded-full bg-success" />
           <span className="text-sm font-semibold text-success-600 dark:text-success-400">
             Resolved:
           </span>
-          <span className="text-lg font-bold text-success">
-            {statusSummary.Resolved}
-          </span>
+          {loadingCounts ? (
+            <Spinner size="sm" />
+          ) : (
+            <span className="text-lg font-bold text-success">
+              {statusSummary.Resolved}
+            </span>
+          )}
         </div>
       </div>
 
@@ -155,9 +207,9 @@ const Dashboard = () => {
             className="max-w-xs min-w-[120px]"
             labelPlacement="outside"
             placeholder="Status"
-            selectedKeys={[statusFilter]}
+            selectedKeys={[filters.status || "all"]}
             onSelectionChange={(keys) =>
-              setStatusFilter(Array.from(keys)[0] as string)
+              handleFilterChange("status", Array.from(keys)[0] as string)
             }
           >
             <SelectItem key="all">All Statuses</SelectItem>
@@ -170,9 +222,9 @@ const Dashboard = () => {
             className="max-w-xs min-w-[120px]"
             labelPlacement="outside"
             placeholder="Priority"
-            selectedKeys={[priorityFilter]}
+            selectedKeys={[filters.priority || "all"]}
             onSelectionChange={(keys) =>
-              setPriorityFilter(Array.from(keys)[0] as string)
+              handleFilterChange("priority", Array.from(keys)[0] as string)
             }
           >
             <SelectItem key="all">All Priorities</SelectItem>
@@ -184,44 +236,77 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredIssues.length > 0 ? (
-          filteredIssues.map((issue) => (
-            <IssueCard
-              key={issue.id}
-              issue={issue}
-              onStatusChange={handleStatusChange}
-              onEdit={handleEdit}
-            />
-          ))
-        ) : (
-          <div className="col-span-full py-10 flex flex-col items-center justify-center text-default-400 bg-default-50 rounded-xl border-2 border-dashed border-default-200">
-            <p className="text-xl">No issues found matching your filters</p>
-            <Button
-              className="mt-4"
-              variant="light"
-              onPress={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setPriorityFilter("all");
-              }}
-            >
-              Clear all filters
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-10">
+          <Spinner size="lg" label="Loading issues..." />
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="col-span-full py-10 flex flex-col items-center justify-center text-danger bg-danger-50 dark:bg-danger-900/20 rounded-xl border-2 border-dashed border-danger-200">
+          <p className="text-xl">{error}</p>
+          <Button
+            className="mt-4"
+            color="primary"
+            variant="light"
+            onPress={() => dispatch(fetchIssues(filters))}
+          >
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {/* Issues Grid */}
+      {!loading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {issues.length > 0 ? (
+            issues.map((issue) => (
+              <IssueCard
+                key={issue._id}
+                issue={toCardIssue(issue)}
+                onStatusChange={handleStatusChange}
+                onEdit={handleEdit}
+              />
+            ))
+          ) : (
+            <div className="col-span-full py-10 flex flex-col items-center justify-center text-default-400 bg-default-50 rounded-xl border-2 border-dashed border-default-200">
+              <p className="text-xl">No issues found matching your filters</p>
+              <Button
+                className="mt-4"
+                variant="light"
+                onPress={handleClearFilters}
+              >
+                Clear all filters
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
       <AddNewModal
         isOpen={addModal.isOpen}
         onOpenChange={addModal.onOpenChange}
+        onSuccess={() => {
+          dispatch(fetchIssues(filters));
+          dispatch(fetchIssueCounts());
+        }}
       />
       <EditModal
         isOpen={editModal.isOpen}
         onOpenChange={editModal.onOpenChange}
         issue={selectedIssue}
+        onSuccess={() => {
+          dispatch(fetchIssues(filters));
+          dispatch(fetchIssueCounts());
+        }}
       />
     </div>
   );
 };
+
+// Need to add useState for missing import
+import { useState } from "react";
 
 export default Dashboard;
