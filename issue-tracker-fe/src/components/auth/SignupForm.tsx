@@ -12,18 +12,19 @@ import { Link } from "react-router-dom";
 
 const SignupForm = () => {
   return (
-    <Card className="w-[400px] h-[450px] ">
+    <Card className="md:w-[400px]  h-[450px] ">
       <CardHeader className="flex justify-center gap-3 ">
-        {/* I need to center this div */}
         <div className="flex flex-col  ">
-          <p className="text-lg dark:text-white  font-bold ">Create an Account</p>
+          <p className="text-lg dark:text-white  font-bold ">
+            Create an Account
+          </p>
         </div>
       </CardHeader>
       <Divider />
       <CardBody>
-        <p className="my-2">Enter Your Credentials to SignUp</p>
+        <p className=" md:my-2">Enter Your Credentials to SignUp</p>
 
-        <Form className="w-full flex flex-col gap-4">
+        <Form className="w-full flex flex-col md:gap-4 gap-2">
           <Input
             isRequired
             label="Email"
@@ -51,7 +52,7 @@ const SignupForm = () => {
             </Button>
           </div>
           <div className="flex flex-col items-center w-full">
-            <p >Already have an account?</p>
+            <p>Already have an account?</p>
             <LinkButton href="/" underline="always">
               Sign In
             </LinkButton>

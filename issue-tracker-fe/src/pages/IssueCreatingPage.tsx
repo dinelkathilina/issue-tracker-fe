@@ -1,4 +1,7 @@
 import React from "react";
+import { SubmitIcon } from "../components/common/SubmitIcon";
+import { Link } from "react-router-dom";
+
 import {
   Card,
   CardBody,
@@ -11,7 +14,7 @@ import {
   SelectItem,
 } from "@heroui/react";
 
-const IssuePage = () => {
+const IssueCreatingPage = () => {
   return (
     <>
       <main className="container mx-auto px-6 py-2 flex justify-center">
@@ -60,15 +63,27 @@ const IssuePage = () => {
               </div>
               {/* Severity */}
               <Select
-              className="md:w-full"
-              label="Severity"
-              labelPlacement="outside-top"
-              placeholder="Select severity"
-            >
-                <SelectItem >Minor</SelectItem>
-                <SelectItem >Major</SelectItem>
-                <SelectItem >Critical</SelectItem>
-            </Select>
+                className="md:w-full"
+                label="Severity"
+                labelPlacement="outside-top"
+                placeholder="Select severity"
+              >
+                <SelectItem>Minor</SelectItem>
+                <SelectItem>Major</SelectItem>
+                <SelectItem>Critical</SelectItem>
+              </Select>
+
+              <div className="flex justify-center w-full">
+                {/* Cancel Button */}
+                <Button as={Link} to="/" color="danger" className="mr-2">
+                  Cancel
+                </Button>
+
+                {/* Submit Issue */}
+                <Button color="primary" endContent={<SubmitIcon />}>
+                  Submit
+                </Button>
+              </div>
             </Form>
           </CardBody>
         </Card>
@@ -77,4 +92,4 @@ const IssuePage = () => {
   );
 };
 
-export default IssuePage;
+export default IssueCreatingPage;

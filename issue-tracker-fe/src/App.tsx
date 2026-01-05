@@ -2,7 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-import IssuePage from "./pages/IssuePage";
+import IssuePage from "./pages/IssueCreatingPage";
 
 // Define the router configuration
 const router = createBrowserRouter([
