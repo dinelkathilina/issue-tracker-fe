@@ -29,9 +29,7 @@ export default function NavBar() {
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  const menuItems = isAuthenticated
-    ? ["Profile", "Dashboard", "Log Out"]
-    : ["Login", "Sign Up"];
+  const menuItems = isAuthenticated ? ["Log Out"] : ["Login", "Sign Up"];
 
   const handleLogout = () => {
     dispatch(logout());
