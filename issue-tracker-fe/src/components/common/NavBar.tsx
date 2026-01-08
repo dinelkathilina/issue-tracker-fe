@@ -12,6 +12,7 @@ import {
   Switch,
   User,
 } from "@heroui/react";
+import { useNavigate } from "react-router-dom";
 
 import { useTheme } from "@heroui/use-theme";
 import { Logo } from "./Logo";
@@ -24,6 +25,7 @@ export default function NavBar() {
   const { theme, setTheme } = useTheme();
   const dispatch = useAppDispatch();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
@@ -51,7 +53,7 @@ export default function NavBar() {
         </NavbarContent>
 
         <NavbarContent justify="start">
-          <NavbarBrand>
+          <NavbarBrand className="cursor-pointer" onClick={() => navigate("/")}>
             <Logo />
             <p className="font-bold text-inherit ml-2 hidden min-[375px]:block">
               Issue Tracker
@@ -96,7 +98,7 @@ export default function NavBar() {
           ) : (
             <>
               <NavbarItem>
-                <Button as={Link} color="primary" href="#">
+                <Button color="primary" onPress={() => navigate("/signup")}>
                   Sign Up
                 </Button>
               </NavbarItem>
@@ -108,7 +110,7 @@ export default function NavBar() {
           {menuItems.map((item, index) => (
             <NavbarMenuItem key={`${item}-${index}`}>
               <Link
-                className="w-full"
+                className="w-full cursor-pointer"
                 color={
                   item === "Log Out"
                     ? "danger"
@@ -116,9 +118,18 @@ export default function NavBar() {
                     ? "warning"
                     : "foreground"
                 }
-                href="#"
                 size="lg"
-                onPress={item === "Log Out" ? handleLogout : undefined}
+                onPress={() => {
+                  if (item === "Log Out") {
+                    handleLogout();
+                  } else if (item === "Sign Up") {
+                    navigate("/signup");
+                  } else if (item === "Login") {
+                    navigate("/");
+                  } else if (item === "Dashboard") {
+                    navigate("/dashboard");
+                  }
+                }}
               >
                 {item}
               </Link>
