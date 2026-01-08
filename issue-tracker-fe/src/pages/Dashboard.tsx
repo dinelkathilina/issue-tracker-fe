@@ -7,12 +7,8 @@ import {
   useDisclosure,
   Input,
   Spinner,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
 } from "@heroui/react";
+import ConfirmationModal from "../components/common/ConfirmationModal";
 import { IssueCard } from "../components/issues/IssueCard";
 import AddNewModal from "../components/Modal/AddNewModal";
 import EditModal from "../components/Modal/EditModal";
@@ -51,12 +47,31 @@ const Dashboard = () => {
   const dispatch = useAppDispatch();
   const addModal = useDisclosure();
   const editModal = useDisclosure();
-  const deleteModal = useDisclosure();
 
   const { issues, counts, loading, loadingCounts, filters, error } =
     useAppSelector((state) => state.issues);
   const [selectedIssue, setSelectedIssue] = useState<CardIssue | undefined>();
-  const [issueToDelete, setIssueToDelete] = useState<string | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmLabel: string;
+    confirmColor:
+      | "primary"
+      | "danger"
+      | "warning"
+      | "success"
+      | "default"
+      | "secondary";
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmLabel: "Confirm",
+    confirmColor: "primary",
+    onConfirm: () => {},
+  });
   const [searchTerm, setSearchTerm] = useState(filters.search || "");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -84,6 +99,31 @@ const Dashboard = () => {
 
   const handleStatusChange = useCallback(
     async (id: string, newStatus: CardIssue["status"]) => {
+      if (
+        newStatus === "In Progress" ||
+        newStatus === "Resolved" ||
+        newStatus === "Closed"
+      ) {
+        setConfirmState({
+          isOpen: true,
+          title: `Confirm Status Change`,
+          message: `Are you sure you want to mark this issue as ${newStatus}?`,
+          confirmLabel: `Mark as ${newStatus}`,
+          confirmColor:
+            newStatus === "Resolved"
+              ? "success"
+              : newStatus === "In Progress"
+              ? "warning"
+              : "danger",
+          onConfirm: async () => {
+            await dispatch(updateIssue({ id, data: { status: newStatus } }));
+            dispatch(fetchIssueCounts());
+            setConfirmState((prev) => ({ ...prev, isOpen: false }));
+          },
+        });
+        return;
+      }
+
       await dispatch(updateIssue({ id, data: { status: newStatus } }));
       dispatch(fetchIssueCounts());
     },
@@ -112,21 +152,23 @@ const Dashboard = () => {
 
   const handleDeleteClick = useCallback(
     (id: string) => {
-      setIssueToDelete(id);
-      deleteModal.onOpen();
+      setConfirmState({
+        isOpen: true,
+        title: "Confirm Delete",
+        message:
+          "Are you sure you want to delete this issue? This action cannot be undone.",
+        confirmLabel: "Delete",
+        confirmColor: "danger",
+        onConfirm: async () => {
+          await dispatch(deleteIssue(id));
+          dispatch(fetchIssues(filters));
+          dispatch(fetchIssueCounts());
+          setConfirmState((prev) => ({ ...prev, isOpen: false }));
+        },
+      });
     },
-    [deleteModal]
+    [dispatch, filters]
   );
-
-  const handleDeleteConfirm = useCallback(async () => {
-    if (issueToDelete) {
-      await dispatch(deleteIssue(issueToDelete));
-      dispatch(fetchIssues(filters));
-      dispatch(fetchIssueCounts());
-      setIssueToDelete(null);
-      deleteModal.onClose();
-    }
-  }, [issueToDelete, dispatch, filters, deleteModal]);
 
   // Status summary from API counts
   const statusSummary = {
@@ -329,35 +371,17 @@ const Dashboard = () => {
           dispatch(fetchIssueCounts());
         }}
       />
-      <Modal
-        isOpen={deleteModal.isOpen}
-        onOpenChange={deleteModal.onOpenChange}
-        backdrop="blur"
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Confirm Delete
-              </ModalHeader>
-              <ModalBody>
-                <p>
-                  Are you sure you want to delete this issue? This action cannot
-                  be undone.
-                </p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="default" variant="light" onPress={onClose}>
-                  Cancel
-                </Button>
-                <Button color="danger" onPress={handleDeleteConfirm}>
-                  Delete
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+      <ConfirmationModal
+        isOpen={confirmState.isOpen}
+        onOpenChange={(isOpen) =>
+          setConfirmState((prev) => ({ ...prev, isOpen }))
+        }
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel={confirmState.confirmLabel}
+        confirmColor={confirmState.confirmColor}
+        onConfirm={confirmState.onConfirm}
+      />
     </div>
   );
 };
