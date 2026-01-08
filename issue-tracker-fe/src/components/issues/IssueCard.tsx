@@ -27,6 +27,7 @@ interface IssueCardProps {
   issue: Issue;
   onStatusChange: (id: string, newStatus: Issue["status"]) => void;
   onEdit: (issue: Issue) => void;
+  onDelete: (id: string) => void;
 }
 
 export const statusColorMap: Record<
@@ -65,6 +66,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
   issue,
   onStatusChange,
   onEdit,
+  onDelete,
 }) => {
   return (
     <Card className="max-w-[400px] border-none bg-background/60 dark:bg-default-100/50 backdrop-blur-lg backdrop-saturate-150 shadow-lg">
@@ -102,9 +104,17 @@ export const IssueCard: React.FC<IssueCardProps> = ({
             aria-label="Issue actions"
             onAction={(key) => {
               if (key === "edit") onEdit(issue);
+              else if (key === "delete") onDelete(issue.id);
               else onStatusChange(issue.id, key as Issue["status"]);
             }}
           >
+            <DropdownItem
+              key="In Progress"
+              color="warning"
+              description="Work is started"
+            >
+              Mark as In Progress
+            </DropdownItem>
             <DropdownItem
               key="Resolved"
               color="success"
@@ -118,6 +128,14 @@ export const IssueCard: React.FC<IssueCardProps> = ({
               description="Close the issue"
             >
               Mark as Closed
+            </DropdownItem>
+            <DropdownItem
+              key="delete"
+              color="danger"
+              className="text-danger"
+              description="Permanently delete this issue"
+            >
+              Delete Issue
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>

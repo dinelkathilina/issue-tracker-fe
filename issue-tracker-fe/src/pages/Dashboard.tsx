@@ -7,6 +7,11 @@ import {
   useDisclosure,
   Input,
   Spinner,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from "@heroui/react";
 import { IssueCard } from "../components/issues/IssueCard";
 import AddNewModal from "../components/Modal/AddNewModal";
@@ -16,6 +21,7 @@ import {
   fetchIssues,
   fetchIssueCounts,
   updateIssue,
+  deleteIssue,
   setFilters,
   clearFilters,
 } from "../store/slices/issuesSlice";
@@ -45,10 +51,12 @@ const Dashboard = () => {
   const dispatch = useAppDispatch();
   const addModal = useDisclosure();
   const editModal = useDisclosure();
+  const deleteModal = useDisclosure();
 
   const { issues, counts, loading, loadingCounts, filters, error } =
     useAppSelector((state) => state.issues);
   const [selectedIssue, setSelectedIssue] = useState<CardIssue | undefined>();
+  const [issueToDelete, setIssueToDelete] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(filters.search || "");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -101,6 +109,24 @@ const Dashboard = () => {
     setSearchTerm("");
     dispatch(clearFilters());
   }, [dispatch]);
+
+  const handleDeleteClick = useCallback(
+    (id: string) => {
+      setIssueToDelete(id);
+      deleteModal.onOpen();
+    },
+    [deleteModal]
+  );
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (issueToDelete) {
+      await dispatch(deleteIssue(issueToDelete));
+      dispatch(fetchIssues(filters));
+      dispatch(fetchIssueCounts());
+      setIssueToDelete(null);
+      deleteModal.onClose();
+    }
+  }, [issueToDelete, dispatch, filters, deleteModal]);
 
   // Status summary from API counts
   const statusSummary = {
@@ -268,6 +294,7 @@ const Dashboard = () => {
                 issue={toCardIssue(issue)}
                 onStatusChange={handleStatusChange}
                 onEdit={handleEdit}
+                onDelete={handleDeleteClick}
               />
             ))
           ) : (
@@ -302,6 +329,35 @@ const Dashboard = () => {
           dispatch(fetchIssueCounts());
         }}
       />
+      <Modal
+        isOpen={deleteModal.isOpen}
+        onOpenChange={deleteModal.onOpenChange}
+        backdrop="blur"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Confirm Delete
+              </ModalHeader>
+              <ModalBody>
+                <p>
+                  Are you sure you want to delete this issue? This action cannot
+                  be undone.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button color="danger" onPress={handleDeleteConfirm}>
+                  Delete
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
